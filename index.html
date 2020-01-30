@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <title>Document</title>
+    <script src="./js/echarts.min.js"></script>
+    <script src="./js/province/china.js"></script>
+    <script src="./js/province/anhui.js"></script>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+    <script src="./js/pinyin.min.js"></script>
+    <style>
+        #main{
+            margin: 0 auto;
+        }
+        #top:hover{
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="margin-left:10%;color: blue;" id="top">上一级</div>
+    <div id="main" style="width: 900px;height:700px;"></div>
+    
+</body>
+<script>
+    // console.log(window.Pinyin.t('华鑫加油').replace(/\s+/g,"")  )
+    var myChart = echarts.init(document.getElementById('main'));
+    var a = document.querySelector('#top');
+    
+    // 疫情数据
+    one()
+    function one(pinyin){
+        var url = 'http://ncov.neeto.cn/api/'
+        $.get(url, function (data, status) {
+            
+            var bbb = JSON.parse(JSON.stringify(data.provinceInfo).replace(/confirmedCount/g, "value"));
+            var bbb = JSON.parse(JSON.stringify(bbb).replace(/provinceShortName/g, "name"));
+            
+            
+            console.log(bbb)
+            // callback(bbb)
+            _int('china',bbb)
+            a.addEventListener('click',function(){
+                _int('china',bbb)
+            })
+        })
+    }
+    
+
+    // _int('china',data)
+
+    // 地图数据
+    function map(pinyin,callback) { 
+        var url = './js/province/'+pinyin+'.js';
+        $.get(url, function (data, status) {
+            
+            callback(data)
+        })
+     }
+    //  省级疫情数据
+    
+    function _int(pName,bbb) { 
+        
+        
+        if(pName!='china'){
+            a.setAttribute('style', 'display:block;margin-left:10%;color: blue;')
+        }else{
+            a.setAttribute('style', 'display:none;margin-left:10%;color: blue;')
+        }
+
+        
+        var option = {
+            title: {
+                text: 'GOD BLESS WUHAN'
+            },
+            tooltip: {
+                trigger: 'item',
+                // formatter: '{a}：{b} <br/>' + '确证病例：' + '{c}<br/>{e}'
+                formatter: function(a){
+                    return `地区:${a.data.name}<br/>确证病例：${a.data.value}<br/>疑似病例${a.data.suspectedCount}<br/>治愈病例${a.data.curedCount}`
+                }
+            },
+            visualMap: {
+                min: 0,
+                max: 1000,
+                minOpen:true,
+                type: 'continuous',  
+                text: ['>1000', 'Low'],
+                realtime: false,
+                calculable: true,
+                inRange: {
+                    color: ['#ffd5c0', '#ffa477', '#f3664c','#d53030', '#7c0000']
+                },
+                calculable:true, 
+                realtime:true, 
+                formatter:function(a){
+                    
+                    return a
+                  
+                }
+            },
+            series: [{
+                name: '地区',
+                hoverAnimation: true,
+                zoom: 1,
+                type: 'map',
+                // roam: true, //是否开启平游或缩放
+                scaleLimit: { //滚轮缩放的极限控制
+                    min: 1,
+                    max: 2
+                },
+                coordinateSystem: 'geo',
+                label: {
+                    show: true
+                },
+                mapType: pName,
+
+                itemStyle: {
+                    normal: {
+                       
+                        borderWidth: .5, //区域边框宽度
+                        borderColor: '#FFFFFF', //区域边框颜色
+                    },
+                    emphasis: {
+                        color: '#ef5aa5'
+                    }
+
+                },
+                data: bbb
+            }],
+        };
+
+        // 使用刚指定的配置项和数据显示图表。
+        myChart.setOption(option);
+        myChart.off("click");
+        myChart.on("click", function (params) {
+         
+            if (params.data.value != undefined) {
+                if (params.data.cities) {
+                    console.log(params)
+                    var name = window.Pinyin.t(params.name).replace(/\s+/g, "")
+                    map(name,function(data){
+                        let a = String;
+                        console.log(params.data.cities)
+                        params.data.cities.map((name,index)=>{
+                            delete name.name
+                            a = name.cityName.indexOf('市')?name.cityName+'市':name.cityName
+                            name.cityName = a
+                            
+                        })
+                        var bbb = JSON.parse(JSON.stringify(params.data.cities).replace(/cityName/g, "name"));
+                        _int(params.name,bbb)
+                    })
+                }
+
+            }
+        });
+        myChart.on("mouseover", function (params) {
+
+            // if (params.data.value != undefined) {
+                myChart.dispatchAction({
+                    type: 'downplay'
+                });
+            // }
+        });
+        
+     }
+     
+</script>
+
+</html>

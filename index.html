@@ -9,7 +9,9 @@
     <script src="./js/echarts.min.js"></script>
     <script src="./js/province/china.js"></script>
     <script src="./js/province/anhui.js"></script>
-    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"
+  integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+  crossorigin="anonymous"></script>
     <script src="./js/pinyin.min.js"></script>
     <style>
         #main{
@@ -34,7 +36,7 @@
     // 疫情数据
     one()
     function one(pinyin){
-        var url = 'http://ncov.neeto.cn/api/'
+        var url = 'http://lab.isaaclin.cn/nCoV/api/area'
         $.get(url, function (data, status) {
             
             var bbb = JSON.parse(JSON.stringify(data.provinceInfo).replace(/confirmedCount/g, "value"));
